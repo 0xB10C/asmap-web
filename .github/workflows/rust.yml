@@ -1,0 +1,21 @@
+name: rust
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: fmt
+        run: nix develop --command cargo fmt --check
+      - name: clippy
+        run: nix develop --command cargo clippy --all-targets -- -D warnings
+      - name: test
+        run: nix develop --command cargo test
+      - name: build (wasm)
+        run: nix develop --command ./build-wasm.sh

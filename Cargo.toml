@@ -1,0 +1,22 @@
+[package]
+name = "asmap-web"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "WASM wrapper around the asmap crate for IP-to-ASN lookups in the browser"
+repository = "https://github.com/0xB10C/asmap-web"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+asmap = "0.1"
+# pinned to the wasm-bindgen-cli version provided by the nix dev shell
+wasm-bindgen = "=0.2.121"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

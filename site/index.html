@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IP → ASN lookup (asmap)</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 42rem;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.4rem; }
+    textarea {
+      width: 100%;
+      min-height: 8rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+    th, td { text-align: left; padding: 0.25rem 0.75rem 0.25rem 0; font-family: monospace; }
+    th { border-bottom: 1px solid currentColor; }
+    td.err { opacity: 0.7; font-style: italic; }
+    #status { font-size: 0.85rem; opacity: 0.7; }
+    footer { margin-top: 3rem; font-size: 0.8rem; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <h1>IP → ASN lookup</h1>
+  <p>
+    Paste one or more IP addresses (IPv4 or IPv6, one per line).
+    Lookups run entirely in your browser against Bitcoin Core's
+    <a href="https://github.com/bitcoin-core/asmap-data">asmap data</a> —
+    no addresses leave this page.
+  </p>
+  <textarea id="input" placeholder="8.8.8.8&#10;2620:fe::fe" autofocus spellcheck="false"></textarea>
+  <p id="status">loading asmap …</p>
+  <table id="results" hidden>
+    <thead><tr><th>IP</th><th>ASN</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <footer>
+    Powered by the <a href="https://crates.io/crates/asmap">asmap</a> Rust crate
+    compiled to WebAssembly ·
+    <a href="https://github.com/0xB10C/asmap-web">source</a>
+  </footer>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
