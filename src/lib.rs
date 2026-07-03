@@ -1,4 +1,5 @@
-//! WASM wrapper around the [`asmap`] crate for IP-to-ASN lookups in the browser.
+//! WASM wrapper around the [`asmap`] crate for IP-to-ASN lookups in the
+//! browser, plus [`asinfo`]-based ASN-to-metadata lookups.
 
 use std::net::IpAddr;
 
@@ -40,6 +41,32 @@ impl AsmapDb {
     pub fn lookup(&self, ip: &str) -> Result<u32, JsError> {
         lookup_str(&self.inner, ip).map_err(|e| JsError::new(&e))
     }
+}
+
+/// Metadata of an autonomous system, exposed to JavaScript.
+#[wasm_bindgen(getter_with_clone)]
+pub struct AsInfo {
+    /// The autonomous system number.
+    pub asn: u32,
+    /// Short handle, e.g. `"LVLT-1"`.
+    pub handle: String,
+    /// Human-readable description, e.g. `"Level 3 Parent LLC"`.
+    pub description: String,
+    /// ISO 3166-1 alpha-2 country code, e.g. `"US"`.
+    pub country: String,
+}
+
+/// Look up the handle, description, and country of an AS by its ASN.
+/// Returns `undefined` for ASNs not in the embedded dataset.
+#[wasm_bindgen(js_name = asInfo)]
+pub fn as_info(asn: u32) -> Option<AsInfo> {
+    let info = asinfo::lookup(asn)?;
+    Some(AsInfo {
+        asn: info.asn,
+        handle: info.handle.to_string(),
+        description: info.description.to_string(),
+        country: info.country.as_str().to_string(),
+    })
 }
 
 #[cfg(test)]
@@ -89,6 +116,21 @@ mod tests {
     fn lookup_trims_whitespace() {
         let map = fixture();
         assert_eq!(lookup_str(&map, "  250.0.0.1\t").unwrap(), 1000);
+    }
+
+    #[test]
+    fn as_info_known_asn() {
+        // ASN 0 is reserved by IANA and stable across dataset updates.
+        let info = as_info(0).unwrap();
+        assert_eq!(info.asn, 0);
+        assert_eq!(info.country, "US");
+        assert!(!info.handle.is_empty());
+        assert!(!info.description.is_empty());
+    }
+
+    #[test]
+    fn as_info_unknown_asn() {
+        assert!(as_info(u32::MAX).is_none());
     }
 
     #[test]

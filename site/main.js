@@ -1,4 +1,4 @@
-import init, { AsmapDb } from "./pkg/asmap_web.js";
+import init, { AsmapDb, asInfo } from "./pkg/asmap_web.js";
 
 const input = document.getElementById("input");
 const status = document.getElementById("status");
@@ -18,6 +18,7 @@ function render() {
     const row = tbody.insertRow();
     row.insertCell().textContent = line;
     const asnCell = row.insertCell();
+    const infoCell = row.insertCell();
     try {
       const asn = db.lookup(line);
       if (asn === 0) {
@@ -28,6 +29,14 @@ function render() {
         link.href = `https://bgp.tools/as/${asn}`;
         link.textContent = `AS${asn}`;
         asnCell.appendChild(link);
+        const info = asInfo(asn);
+        if (info === undefined) {
+          infoCell.textContent = "unknown";
+          infoCell.className = "err";
+        } else {
+          infoCell.textContent = `${info.description} [${info.country}]`;
+          infoCell.title = info.handle;
+        }
       }
     } catch (e) {
       asnCell.textContent = String(e.message ?? e);
