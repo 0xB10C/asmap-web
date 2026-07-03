@@ -25,6 +25,7 @@
     th, td { text-align: left; padding: 0.25rem 0.75rem 0.25rem 0; font-family: monospace; }
     th { border-bottom: 1px solid currentColor; }
     td.err { opacity: 0.7; font-style: italic; }
+    select { font-family: monospace; font-size: 0.9rem; }
     #status { font-size: 0.85rem; opacity: 0.7; }
     footer { margin-top: 3rem; font-size: 0.8rem; opacity: 0.7; }
   </style>
@@ -36,6 +37,12 @@
     Lookups run entirely in your browser against Bitcoin Core's
     <a href="https://github.com/bitcoin-core/asmap-data">asmap data</a> —
     no addresses leave this page.
+  </p>
+  <p>
+    <label for="asmap-select">asmap file:</label>
+    <select id="asmap-select">
+      <option value="latest_asmap.dat" selected>latest_asmap.dat</option>
+    </select>
   </p>
   <textarea id="input" placeholder="8.8.8.8&#10;2620:fe::fe" autofocus spellcheck="false"></textarea>
   <p id="status">loading asmap …</p>
