@@ -14,6 +14,27 @@ let db = null;
 const cache = new Map();
 let current = LOCAL_LATEST;
 
+/// Mirror the current state into the URL so it can be shared as a
+/// permalink: valid IPs go into ?ip= (comma-separated) and ?asmap=
+/// is set when a non-default file is selected.
+function updateUrl(validIps) {
+  const params = new URLSearchParams();
+  if (validIps.length > 0) {
+    params.set("ip", validIps.join(","));
+  }
+  if (current !== LOCAL_LATEST) {
+    params.set("asmap", current);
+  }
+  // Commas, colons (IPv6) and slashes (asmap paths) are valid in a
+  // query string; undo their percent-encoding for readability.
+  const query = params
+    .toString()
+    .replace(/%2C/gi, ",")
+    .replace(/%3A/gi, ":")
+    .replace(/%2F/gi, "/");
+  history.replaceState(null, "", query ? `?${query}` : location.pathname);
+}
+
 function render() {
   if (db === null) return;
   tbody.replaceChildren();
@@ -22,6 +43,7 @@ function render() {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
   table.hidden = lines.length === 0;
+  const validIps = [];
   for (const line of lines) {
     const row = tbody.insertRow();
     row.insertCell().textContent = line;
@@ -29,6 +51,7 @@ function render() {
     const infoCell = row.insertCell();
     try {
       const asn = db.lookup(line);
+      validIps.push(line);
       if (asn === 0) {
         asnCell.textContent = "unmapped";
         asnCell.className = "err";
@@ -51,6 +74,7 @@ function render() {
       asnCell.className = "err";
     }
   }
+  updateUrl(validIps);
 }
 
 async function fetchDb(value) {
@@ -124,15 +148,40 @@ async function loadFileList() {
 async function main() {
   try {
     await init();
-    // Support pre-filling a lookup via ?ip=8.8.8.8; the first render
-    // after the database loads picks it up.
-    const ip = new URLSearchParams(location.search).get("ip");
+    const params = new URLSearchParams(location.search);
+    // Support pre-filling lookups via ?ip=8.8.8.8,2620:fe::fe; the
+    // first render after the database loads picks them up.
+    const ip = params.get("ip");
     if (ip !== null) {
-      input.value = ip.trim();
+      input.value = ip
+        .split(/[\s,;]+/)
+        .filter((l) => l.length > 0)
+        .join("\n");
     }
     select.addEventListener("change", () => selectAsmap(select.value));
     input.addEventListener("input", render);
-    await Promise.all([selectAsmap(LOCAL_LATEST), loadFileList()]);
+    const asmap = params.get("asmap");
+    if (asmap !== null && asmap !== LOCAL_LATEST) {
+      // The dropdown needs its options before the file can be selected.
+      await loadFileList();
+      if (![...select.options].some((o) => o.value === asmap)) {
+        const option = document.createElement("option");
+        option.value = option.textContent = asmap;
+        select.append(option);
+      }
+      select.value = asmap;
+      await selectAsmap(asmap);
+      if (db === null) {
+        // The linked asmap failed to load; fall back to the default,
+        // but keep the error visible.
+        const error = status.textContent;
+        select.value = LOCAL_LATEST;
+        await selectAsmap(LOCAL_LATEST);
+        status.textContent = `${error} — fell back to ${LOCAL_LATEST}`;
+      }
+    } else {
+      await Promise.all([selectAsmap(LOCAL_LATEST), loadFileList()]);
+    }
   } catch (e) {
     status.textContent = `error: ${String(e.message ?? e)}`;
   }
