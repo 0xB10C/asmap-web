@@ -124,6 +124,12 @@ async function loadFileList() {
 async function main() {
   try {
     await init();
+    // Support pre-filling a lookup via ?ip=8.8.8.8; the first render
+    // after the database loads picks it up.
+    const ip = new URLSearchParams(location.search).get("ip");
+    if (ip !== null) {
+      input.value = ip.trim();
+    }
     select.addEventListener("change", () => selectAsmap(select.value));
     input.addEventListener("input", render);
     await Promise.all([selectAsmap(LOCAL_LATEST), loadFileList()]);

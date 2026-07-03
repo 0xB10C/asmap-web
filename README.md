@@ -3,6 +3,7 @@
 A web frontend for asmap based IP to ASN lookups.
 
 Paste IP addresses (IPv4 or IPv6) into a text box and get the ASN for each.
+A single IP can also be passed via URL parameter, e.g. `?ip=8.8.8.8`.
 Lookups run entirely in the browser: the [asmap](https://crates.io/crates/asmap)
 Rust crate is compiled to a small (~28 KB) WebAssembly module, and the latest
 [bitcoin-core/asmap-data](https://github.com/bitcoin-core/asmap-data) file is
