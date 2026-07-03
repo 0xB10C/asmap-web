@@ -21,15 +21,15 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31
       - name: build wasm
         run: nix develop --command ./build-wasm.sh
       - name: fetch latest asmap data
         run: curl -sSfL -o site/latest_asmap.dat https://raw.githubusercontent.com/bitcoin-core/asmap-data/main/latest_asmap.dat
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
